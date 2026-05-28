@@ -1,6 +1,6 @@
 # jagged-mamba2
 
-Single Pallas kernel for jagged Mamba2 SSD prefill on TPU v6e. Phases A/B/C are fused into one `pallas_call`;
+Single Pallas kernel for jagged Mamba2 SSD prefill on TPU v6e.
 
 Implementation: [`mamba2-candidate-v6.py`](mamba2-candidate-v6.py)
 
