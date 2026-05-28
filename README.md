@@ -2,7 +2,7 @@
 
 Single Pallas kernel for jagged Mamba2 SSD prefill on TPU v6e.
 
-Implementation: [`mamba2-candidate-v6.py`](mamba2-candidate-v6.py)
+Implementation: [`candidate_v6.py`](candidate_v6.py). Standalone driver with correctness check and timing: [`main.py`](main.py).
 
 ## Environment
 
@@ -38,12 +38,20 @@ Hard-coded: `H=128, P=64, N=128, CHUNK=256, I_TILE=64`. `T` need not be a multip
 
 ## Run
 
-```python
-import jax, jax.numpy as jnp, importlib.util, sys
+The bundled driver runs a deterministic 64-sequence workload (T=19120, the first 64 sequences of `mamba2_ssd-msl1024-b512-sp0.95-a2-h128p64n128-bf16`, sized to fit one v6e chip), checks against an inline fp32 reference, and prints median latency:
 
-spec = importlib.util.spec_from_file_location("v6", "mamba2-candidate-v6.py")
-v6 = importlib.util.module_from_spec(spec); sys.modules["v6"] = v6
-spec.loader.exec_module(v6)
+```bash
+python3 main.py                              # default workload + correctness + timing
+python3 main.py --case path/to/case.json     # custom case (cases_mamba2_ssd/*.json schema)
+python3 main.py --no-correctness             # skip the fp32 ref (~5x slower than the kernel)
+python3 main.py --warmup 5 --iters 20        # tweak timing
+```
+
+Or call the kernel directly:
+
+```python
+import jax, jax.numpy as jnp
+from candidate_v6 import ssd_candidate_jit
 
 seqlens = jnp.array([200, 500, 324], jnp.int32)
 cu_seqlens = jnp.concatenate([jnp.zeros(1, jnp.int32), jnp.cumsum(seqlens)])
@@ -56,7 +64,7 @@ A_log = -jnp.exp(jax.random.normal(k[2], (H,), jnp.float32))
 B  = jax.random.normal(k[3], (T, H, N), jnp.bfloat16)
 C  = jax.random.normal(k[4], (T, H, N), jnp.bfloat16)
 
-y = v6.ssd_candidate_jit(x, dt, A_log, B, C, cu_seqlens)
+y = ssd_candidate_jit(x, dt, A_log, B, C, cu_seqlens)
 y.block_until_ready()
 ```
 
