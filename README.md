@@ -4,6 +4,9 @@ Single Pallas kernel for jagged Mamba2 SSD prefill on TPU v6e.
 
 Implementation: [`candidate_v6.py`](candidate_v6.py). Standalone driver with correctness check and timing: [`main.py`](main.py).
 
+<img width="834" height="454" alt="image" src="https://github.com/user-attachments/assets/a3d46edf-c659-4899-9a95-32a78c01b05b" />
+
+
 ## Environment
 
 | | |
